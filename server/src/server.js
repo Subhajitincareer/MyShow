@@ -2,7 +2,7 @@ import express from "express";
 import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
-
+import { connectDB } from "./config/db.js";
 dotenv.config();
 
 const app = express();
@@ -15,7 +15,7 @@ const __dirname = path.dirname(__filename);
 
 // ✅ Parse JSON
 app.use(express.json());
-
+connectDB()
 // ✅ Serve client dist files
 const distPath = path.join(__dirname, "../../client/dist");
 app.use(express.static(distPath));

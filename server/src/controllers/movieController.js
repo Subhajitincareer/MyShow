@@ -6,8 +6,8 @@ export const createMovie = async (req, res) => {
     try {
         // Validate request body
         const validatedData = movieSchema.parse(req.body);
-
-        const newMovie = await prisma.movie.create({ data: validatedData });
+        const { title, type, director, budget, location, duration, year } = validatedData;
+        const newMovie = await prisma.movie.create({ data: { title, type, director, budget, location, duration, year } });
 
         res.status(201).json({
             message: "Movie successfully inserted ✅",

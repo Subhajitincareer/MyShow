@@ -5,6 +5,7 @@ import { fileURLToPath } from "url";
 import { connectDB } from "./config/db.js";
 import movie from "./routes/movieRoute.js";
 import user from "./routes/useRoute.js"
+
 dotenv.config();
 
 const app = express();

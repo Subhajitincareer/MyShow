@@ -5,7 +5,7 @@ const MovieTypeEnum = z.enum(["Movie", "TvShow"]);
 
 export const movieSchema = z.object({
     title: z.string().min(1, "Title is required"),
-    type: MovieTypeEnum,
+    type: z.enum(["Movie", "TvShow"]),
     director: z.string().min(1, "Director is required"),
     budget: z.coerce.number().positive("Budget must be a positive number"),
     location: z.string().min(1, "Location is required"),

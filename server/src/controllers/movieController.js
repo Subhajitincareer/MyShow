@@ -1,5 +1,5 @@
 import prisma from "../config/db.js";
-import { movieSchema } from "../validators/movieValidator.js";
+import { movieSchema } from "../utils/movieValidator.js";
 
 // ✅ CREATE MOVIE
 export const createMovie = async (req, res) => {

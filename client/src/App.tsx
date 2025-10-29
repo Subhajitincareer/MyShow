@@ -1,8 +1,11 @@
-
-
+import { BrowserRouter as Router , Routes , Route } from "react-router-dom"
 const App = () => {
   return (
-    <div>oky4</div>
+    <Router>
+      <Routes>
+        <Route path="/" element={<div>hello</div>} />
+      </Routes>
+    </Router>
   )
 }
 

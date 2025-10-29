@@ -3,6 +3,8 @@ import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
 import { connectDB } from "./config/db.js";
+import movie from "./routes/movieRoute.js";
+import user from "./routes/useRoute.js"
 dotenv.config();
 
 const app = express();
@@ -21,10 +23,8 @@ const distPath = path.join(__dirname, "../../client/dist");
 app.use(express.static(distPath));
 
 // ✅ API routes (example)
-app.get("/api", (req, res) => {
-    res.json({ message: "🎬 API working fine!" });
-});
-;
+app.use("/movies", movie);
+app.use("/use", user)
 
 // ✅ Start server
 app.listen(PORT, () => {

@@ -79,7 +79,7 @@ const AddMovieModal: React.FC<AddMovieModalProps> = ({
         toast.success(`🎬 ${movieData.title} updated successfully!`);
       } else {
         // Create new movie
-        await axios.post("/movies/create", movieData);
+        await axios.post("https://myshow-r1l8.onrender.com/movies/create", movieData);
         toast.success(`🎬 ${movieData.title} added successfully!`);
       }
 

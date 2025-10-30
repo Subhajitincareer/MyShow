@@ -2,10 +2,11 @@ import express from "express";
 import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
-import cors from "cors"; // ✅ CORS import
+import cors from "cors";
+import fs from "fs"; // ✅ Added for file checking
 import { connectDB } from "./config/db.js";
 import movie from "./routes/movieRoute.js";
-import user from "./routes/useRoute.js"; // ✅ Typo fix
+import user from "./routes/useRoute.js"; // ✅ Fixed typo
 
 dotenv.config();
 
@@ -19,9 +20,10 @@ const __dirname = path.dirname(__filename);
 // ✅ CORS Configuration
 app.use(
     cors({
-        origin: process.env.CLIENT_URL || "*", // Production এ specific origin দাও
+        origin: process.env.CLIENT_URL || "*",
         credentials: true,
         methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+        allowedHeaders: ["Content-Type", "Authorization"],
     })
 );
 
@@ -35,49 +37,157 @@ try {
     console.log("✅ Database connected successfully");
 } catch (error) {
     console.error("❌ Database connection failed:", error);
-    process.exit(1); // Exit if DB connection fails
+    process.exit(1);
 }
 
-// ✅ Health Check Endpoint (for Render monitoring)
+// ✅ Health Check Endpoint
 app.get("/health", (req, res) => {
-    res.status(200).json({ status: "ok", message: "Server is running" });
+    res.status(200).json({
+        status: "ok",
+        message: "Server is running",
+        timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV || "development",
+    });
 });
 
 // ✅ API routes
 app.use("/movies", movie);
-app.use("/user", user); // Changed from /use to /user
+app.use("/user", user);
 
 // ✅ Serve static files (client build)
 const distPath = path.join(__dirname, "../../client/dist");
-app.use(express.static(distPath));
 
-// ✅ SPA Fallback Route - Must be AFTER API routes
+// Debug logging
+console.log("📂 __dirname:", __dirname);
+console.log("📂 distPath:", distPath);
+console.log("✅ Dist folder exists?", fs.existsSync(distPath));
+
+if (fs.existsSync(distPath)) {
+    const files = fs.readdirSync(distPath);
+    console.log("📄 Files in dist folder:", files);
+}
+
+// ✅ Serve static files with proper caching
+app.use(express.static(distPath, {
+    maxAge: "1d",
+    etag: false,
+    lastModified: false,
+}));
+
+// ✅ SPA Fallback Route - Express 5 compatible
 app.get("{/*path}", (req, res) => {
-    res.sendFile(path.join(distPath, "index.html"));
+    const indexPath = path.join(distPath, "index.html");
+
+    // Check if index.html exists
+    if (!fs.existsSync(indexPath)) {
+        console.error("❌ index.html not found at:", indexPath);
+        return res.status(404).json({
+            success: false,
+            error: "index.html not found",
+            debug: {
+                distPath: distPath,
+                indexPath: indexPath,
+                distExists: fs.existsSync(distPath),
+            },
+        });
+    }
+
+    res.sendFile(indexPath, (err) => {
+        if (err) {
+            console.error("❌ Error serving index.html:", err);
+            if (!res.headersSent) {
+                res.status(500).json({
+                    success: false,
+                    error: "Failed to load application",
+                    message: err.message,
+                });
+            }
+        }
+    });
+});
+
+// ✅ 404 Not Found Handler (before error handler)
+app.use((req, res) => {
+    res.status(404).json({
+        success: false,
+        message: "Route not found",
+        path: req.path,
+        method: req.method,
+    });
 });
 
 // ✅ Centralized Error Handling Middleware
 app.use((err, req, res, next) => {
-    console.error("❌ Error:", err.stack);
+    console.error("❌ Error Details:", {
+        message: err.message,
+        stack: err.stack,
+        path: req.path,
+        method: req.method,
+        query: req.query,
+        timestamp: new Date().toISOString(),
+    });
 
-    const statusCode = err.statusCode || 500;
+    const statusCode = err.statusCode || err.status || 500;
     const message = err.message || "Internal Server Error";
 
-    res.status(statusCode).json({
+    // Don't send stack trace in production
+    const response = {
         success: false,
         message: message,
-        stack: process.env.NODE_ENV === "production" ? undefined : err.stack,
-    });
+        ...(process.env.NODE_ENV !== "production" && {
+            stack: err.stack,
+            path: req.path,
+        }),
+    };
+
+    res.status(statusCode).json(response);
 });
 
 // ✅ Handle Unhandled Promise Rejections
 process.on("unhandledRejection", (reason, promise) => {
-    console.error("❌ Unhandled Rejection at:", promise, "reason:", reason);
-    // Close server & exit process (optional)
+    console.error("❌ Unhandled Promise Rejection at:", promise);
+    console.error("❌ Reason:", reason);
+    // Optionally exit or send alert
+    // process.exit(1);
+});
+
+// ✅ Handle Uncaught Exceptions
+process.on("uncaughtException", (error) => {
+    console.error("❌ Uncaught Exception:", error);
     process.exit(1);
 });
 
 // ✅ Start server
-app.listen(PORT, () => {
-    console.log(`✅ Server running on http://localhost:${PORT}`);
+const server = app.listen(PORT, () => {
+    console.log(`
+╔════════════════════════════════════════════╗
+║         🎬 MyShow Backend Server          ║
+╠════════════════════════════════════════════╣
+║ 🌐 URL: http://localhost:${PORT}            
+║ 📂 Dist Path: ${distPath}
+║ 🗄️  Database: ${process.env.NODE_ENV === "production" ? "Production" : "Development"}
+║ 🔒 CORS: ${process.env.CLIENT_URL || "Open"}
+║ 📡 Health Check: /health                  ║
+║ 🎞️  API Routes: /movies, /user            ║
+╚════════════════════════════════════════════╝
+  `);
 });
+
+// ✅ Graceful Shutdown
+process.on("SIGTERM", () => {
+    console.log("🛑 SIGTERM received, shutting down gracefully...");
+    server.close(() => {
+        console.log("✅ Server closed");
+        process.exit(0);
+    });
+});
+
+process.on("SIGINT", () => {
+    console.log("🛑 SIGINT received, shutting down gracefully...");
+    server.close(() => {
+        console.log("✅ Server closed");
+        process.exit(0);
+    });
+});
+
+export default app;

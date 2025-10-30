@@ -5,7 +5,10 @@
   "main": "index.js",
   "scripts": {
     "watch-client": "chokidar \"../client/src/**/*\" -c \"cd ../client && npm run build\"",
-    "dev": "concurrently \"npm run watch-client\" \"nodemon src/server.js\""
+    "dev": "concurrently \"npm run watch-client\" \"nodemon src/server.js\"",
+    "build": "prisma generate",
+    "start": "node src/server.js",
+    "postinstall": "prisma generate"
   },
   "keywords": [],
   "author": "",

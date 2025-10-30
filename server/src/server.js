@@ -1,29 +1,22 @@
 import express from "express";
 import dotenv from "dotenv";
-import path from "path";
-import { fileURLToPath } from "url";
 import cors from "cors";
-import fs from "fs"; // ✅ Added for file checking
 import { connectDB } from "./config/db.js";
 import movie from "./routes/movieRoute.js";
-import user from "./routes/useRoute.js"; // ✅ Fixed typo
+import user from "./routes/useRoute.js";
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// 🧩 ES module compatible __dirname
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// ✅ CORS Configuration
+// ✅ CORS Configuration for Vercel Frontend
 app.use(
     cors({
-        origin: process.env.CLIENT_URL || "*",
+        origin: "https://my-show-mzhy.vercel.app",
         credentials: true,
         methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
-
+        allowedHeaders: ["Content-Type", "Authorization"],
     })
 );
 
@@ -54,59 +47,7 @@ app.get("/health", (req, res) => {
 app.use("/movies", movie);
 app.use("/user", user);
 
-// ✅ Serve static files (client build)
-const distPath = path.join(__dirname, "../../client/dist");
-
-// Debug logging
-console.log("📂 __dirname:", __dirname);
-console.log("📂 distPath:", distPath);
-console.log("✅ Dist folder exists?", fs.existsSync(distPath));
-
-if (fs.existsSync(distPath)) {
-    const files = fs.readdirSync(distPath);
-    console.log("📄 Files in dist folder:", files);
-}
-
-// ✅ Serve static files with proper caching
-app.use(express.static(distPath, {
-    maxAge: "1d",
-    etag: false,
-    lastModified: false,
-}));
-
-// ✅ SPA Fallback Route - Express 5 compatible
-app.get("{/*path}", (req, res) => {
-    const indexPath = path.join(distPath, "index.html");
-
-    // Check if index.html exists
-    if (!fs.existsSync(indexPath)) {
-        console.error("❌ index.html not found at:", indexPath);
-        return res.status(404).json({
-            success: false,
-            error: "index.html not found",
-            debug: {
-                distPath: distPath,
-                indexPath: indexPath,
-                distExists: fs.existsSync(distPath),
-            },
-        });
-    }
-
-    res.sendFile(indexPath, (err) => {
-        if (err) {
-            console.error("❌ Error serving index.html:", err);
-            if (!res.headersSent) {
-                res.status(500).json({
-                    success: false,
-                    error: "Failed to load application",
-                    message: err.message,
-                });
-            }
-        }
-    });
-});
-
-// ✅ 404 Not Found Handler (before error handler)
+// ✅ 404 Not Found Handler
 app.use((req, res) => {
     res.status(404).json({
         success: false,
@@ -130,7 +71,6 @@ app.use((err, req, res, next) => {
     const statusCode = err.statusCode || err.status || 500;
     const message = err.message || "Internal Server Error";
 
-    // Don't send stack trace in production
     const response = {
         success: false,
         message: message,
@@ -147,8 +87,6 @@ app.use((err, req, res, next) => {
 process.on("unhandledRejection", (reason, promise) => {
     console.error("❌ Unhandled Promise Rejection at:", promise);
     console.error("❌ Reason:", reason);
-    // Optionally exit or send alert
-    // process.exit(1);
 });
 
 // ✅ Handle Uncaught Exceptions
@@ -158,19 +96,18 @@ process.on("uncaughtException", (error) => {
 });
 
 // ✅ Start server
-const server = app.listen(PORT, () => {
+const server = app.listen(PORT, "0.0.0.0", () => {
     console.log(`
 ╔════════════════════════════════════════════╗
 ║         🎬 MyShow Backend Server          ║
 ╠════════════════════════════════════════════╣
-║ 🌐 URL: http://localhost:${PORT}            
-║ 📂 Dist Path: ${distPath}
+║ 🌐 URL: http://0.0.0.0:${PORT}            
 ║ 🗄️  Database: ${process.env.NODE_ENV === "production" ? "Production" : "Development"}
-║ 🔒 CORS: ${process.env.CLIENT_URL || "Open"}
+║ 🔒 CORS: https://my-show-mzhy.vercel.app
 ║ 📡 Health Check: /health                  ║
 ║ 🎞️  API Routes: /movies, /user            ║
 ╚════════════════════════════════════════════╝
-  `);
+    `);
 });
 
 // ✅ Graceful Shutdown

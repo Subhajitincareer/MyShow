@@ -34,7 +34,7 @@ const Home: React.FC = () => {
   // Fetch movies from API
   const fetchMovies = async () => {
     try {
-      const response = await axios.get("/movies/all");
+      const response = await axios.get("https://myshow-r1l8.onrender.com/movies/all");
       setMovies(response.data.data);
       setFilteredMovies(response.data.data);
     } catch (error) {
@@ -67,7 +67,7 @@ const Home: React.FC = () => {
       );
       if (!confirmDelete) return;
 
-      const response = await axios.delete(`/movies/delete/${id}`);
+      const response = await axios.delete(`https://myshow-r1l8.onrender.com/movies/delete/${id}`);
 
       if (response.status === 200) {
         toast.success("Movie deleted successfully ✅");

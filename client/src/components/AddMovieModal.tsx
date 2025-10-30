@@ -75,7 +75,7 @@ const AddMovieModal: React.FC<AddMovieModalProps> = ({
     try {
       if (isEditMode) {
         // Update existing movie
-        await axios.put(`/movies/update/${movie.id}`, movieData);
+        await axios.put(`https://myshow-r1l8.onrender.com/movies/update/${movie.id}`, movieData);
         toast.success(`🎬 ${movieData.title} updated successfully!`);
       } else {
         // Create new movie

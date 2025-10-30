@@ -23,7 +23,6 @@ app.use(
         origin: process.env.CLIENT_URL || "*",
         credentials: true,
         methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
-        allowedHeaders: ["Content-Type", "Authorization"],
     })
 );
 
@@ -54,57 +53,23 @@ app.get("/health", (req, res) => {
 app.use("/movies", movie);
 app.use("/user", user);
 
-// ✅ Serve static files (client build)
-const distPath = path.join(__dirname, "../../client/dist");
 
-// Debug logging
-console.log("📂 __dirname:", __dirname);
-console.log("📂 distPath:", distPath);
-console.log("✅ Dist folder exists?", fs.existsSync(distPath));
 
-if (fs.existsSync(distPath)) {
-    const files = fs.readdirSync(distPath);
-    console.log("📄 Files in dist folder:", files);
+// Check if index.html exists
+if (!fs.existsSync(indexPath)) {
+    console.error("❌ index.html not found at:", indexPath);
+    return res.status(404).json({
+        success: false,
+        error: "index.html not found",
+        debug: {
+            distPath: distPath,
+            indexPath: indexPath,
+            distExists: fs.existsSync(distPath),
+        },
+    });
 }
 
-// ✅ Serve static files with proper caching
-app.use(express.static(distPath, {
-    maxAge: "1d",
-    etag: false,
-    lastModified: false,
-}));
 
-// ✅ SPA Fallback Route - Express 5 compatible
-app.get("{/*path}", (req, res) => {
-    const indexPath = path.join(distPath, "index.html");
-
-    // Check if index.html exists
-    if (!fs.existsSync(indexPath)) {
-        console.error("❌ index.html not found at:", indexPath);
-        return res.status(404).json({
-            success: false,
-            error: "index.html not found",
-            debug: {
-                distPath: distPath,
-                indexPath: indexPath,
-                distExists: fs.existsSync(distPath),
-            },
-        });
-    }
-
-    res.sendFile(indexPath, (err) => {
-        if (err) {
-            console.error("❌ Error serving index.html:", err);
-            if (!res.headersSent) {
-                res.status(500).json({
-                    success: false,
-                    error: "Failed to load application",
-                    message: err.message,
-                });
-            }
-        }
-    });
-});
 
 // ✅ 404 Not Found Handler (before error handler)
 app.use((req, res) => {

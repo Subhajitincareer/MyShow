@@ -5,7 +5,7 @@ import { fileURLToPath } from "url";
 import cors from "cors"; // ✅ CORS import
 import { connectDB } from "./config/db.js";
 import movie from "./routes/movieRoute.js";
-import user from "./routes/userRoute.js"; // ✅ Typo fix
+import user from "./routes/useRoute.js"; // ✅ Typo fix
 
 dotenv.config();
 
@@ -52,7 +52,7 @@ const distPath = path.join(__dirname, "../../client/dist");
 app.use(express.static(distPath));
 
 // ✅ SPA Fallback Route - Must be AFTER API routes
-app.get("*", (req, res) => {
+app.get("{/*path}", (req, res) => {
     res.sendFile(path.join(distPath, "index.html"));
 });
 

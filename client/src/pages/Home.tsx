@@ -2,11 +2,9 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
   TableHead,
   TableHeader,
@@ -83,119 +81,185 @@ const Home: React.FC = () => {
 
   return (
     <>
-      {/* Mobile View */}
-      <div className="w-screen h-screen space-y-6 md:hidden">
-        <ToastContainer position="top-right" autoClose={2000} />
+{/* Mobile View */}
+<div className="w-screen min-h-screen md:hidden bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+  <ToastContainer position="top-right" autoClose={2000} />
 
-        {/* Search Bar */}
-        <div className="w-full flex justify-center">
-          <div className="flex p-4 space-x-4">
-            <Input
-              id="search"
-              type="text"
-              placeholder="Enter movie name"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-            <Button variant="outline">Search</Button>
+  {/* Header */}
+  <header className="bg-slate-800/50 backdrop-blur-sm border-b border-slate-700 sticky top-0 z-10">
+    <div className="px-4 py-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-2">
+          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+            <span className="text-white text-lg">🎬</span>
           </div>
+          <h1 className="text-lg font-bold text-white">Movies</h1>
         </div>
-
-        {/* Add Movie Modal */}
-        <AddMovieModal onMovieAdded={fetchMovies} />
-
-        {/* Table Section */}
-        <div className="flex justify-center">
-          <div className="overflow-x-auto">
-            <Table className="border border-gray-300">
-              <TableCaption>List of Movies</TableCaption>
-              <TableHeader>
-                <TableRow className="border-b border-gray-300">
-                  <TableHead className="w-[100px] border-r border-gray-300">
-                    Title
-                  </TableHead>
-                  <TableHead className="border-r border-gray-300">Type</TableHead>
-                  <TableHead className="border-r border-gray-300">
-                    Director
-                  </TableHead>
-                  <TableHead className="text-right border-r border-gray-300">
-                    Budget
-                  </TableHead>
-                  <TableHead className="text-right border-r border-gray-300">
-                    Location
-                  </TableHead>
-                  <TableHead className="text-right border-r border-gray-300">
-                    Duration
-                  </TableHead>
-                  <TableHead className="text-right border-r border-gray-300">
-                    Year
-                  </TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-
-              <TableBody>
-                {filteredMovies.length > 0 ? (
-                  filteredMovies.map((movie) => (
-                    <TableRow
-                      key={movie.id}
-                      className="border-b border-gray-200 hover:bg-gray-50 transition"
-                    >
-                      <TableCell className="font-medium border-r border-gray-200">
-                        {movie.title}
-                      </TableCell>
-                      <TableCell className="border-r border-gray-200">
-                        {movie.type}
-                      </TableCell>
-                      <TableCell className="border-r border-gray-200">
-                        {movie.director}
-                      </TableCell>
-                      <TableCell className="text-right border-r border-gray-200">
-                        ${movie.budget.toFixed(2)}
-                      </TableCell>
-                      <TableCell className="text-right border-r border-gray-200">
-                        {movie.location}
-                      </TableCell>
-                      <TableCell className="text-right border-r border-gray-200">
-                        {movie.duration}
-                      </TableCell>
-                      <TableCell className="text-right border-r border-gray-200">
-                        {movie.year}
-                      </TableCell>
-
-                      {/* Edit & Delete Buttons */}
-                      <TableCell className="text-right">
-                        <div className="flex justify-end space-x-3 pr-3">
-                          {/* Edit Modal */}
-                          <AddMovieModal
-                            onMovieAdded={fetchMovies}
-                            movie={movie}
-                            mode="edit"
-                          />
-                          
-                          {/* Delete Button */}
-                          <button
-                            onClick={() => handleDelete(movie.id)}
-                            className="text-red-500 hover:text-red-700 transition"
-                          >
-                            <Trash2 size={18} />
-                          </button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={8} className="text-center py-4">
-                      {search ? "No movies match your search." : "No movies found."}
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </div>
+        <div className="text-right">
+          <p className="text-xs text-slate-400">Total</p>
+          <p className="text-sm font-bold text-white">{movies.length}</p>
         </div>
       </div>
+    </div>
+  </header>
+
+  {/* Search Bar */}
+  <div className="px-4 py-4 bg-slate-800/30">
+    <div className="relative">
+      <Input
+        id="search"
+        type="text"
+        placeholder="Search movies..."
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        className="pl-10 bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400 focus:ring-2 focus:ring-blue-500"
+      />
+      <svg
+        className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"
+        fill="none"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+      </svg>
+    </div>
+  </div>
+
+  {/* Add Movie Button */}
+  <div className="px-4 pb-4">
+    <AddMovieModal onMovieAdded={fetchMovies} />
+  </div>
+
+  {/* Movies Grid - Card Layout */}
+  <div className="px-4 pb-4 space-y-4">
+    {filteredMovies.length > 0 ? (
+      filteredMovies.map((movie) => (
+        <div
+          key={movie.id}
+          className="bg-slate-800/40 backdrop-blur-sm rounded-xl border border-slate-700 overflow-hidden hover:border-slate-600 transition-all"
+        >
+          {/* Card Header */}
+          <div className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 px-4 py-3 border-b border-slate-700">
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <h3 className="text-white font-semibold text-lg leading-tight">
+                  {movie.title}
+                </h3>
+                <div className="flex items-center space-x-2 mt-1">
+                  <span
+                    className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                      movie.type === "Movie"
+                        ? "bg-green-500/10 text-green-400 border border-green-500/20"
+                        : "bg-purple-500/10 text-purple-400 border border-purple-500/20"
+                    }`}
+                  >
+                    {movie.type}
+                  </span>
+                  <span className="text-slate-400 text-xs">{movie.year}</span>
+                </div>
+              </div>
+              
+              {/* Actions */}
+              <div className="flex items-center space-x-2 ml-2">
+                <AddMovieModal
+                  onMovieAdded={fetchMovies}
+                  movie={movie}
+                  mode="edit"
+                />
+                <button
+                  onClick={() => handleDelete(movie.id)}
+                  className="p-2 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-all"
+                >
+                  <Trash2 size={16} />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Card Body */}
+          <div className="px-4 py-3 space-y-3">
+            {/* Director */}
+            <div className="flex items-center justify-between">
+              <span className="text-slate-400 text-sm">Director</span>
+              <span className="text-white text-sm font-medium">{movie.director}</span>
+            </div>
+
+            {/* Budget */}
+            <div className="flex items-center justify-between">
+              <span className="text-slate-400 text-sm">Budget</span>
+              <span className="text-green-400 text-sm font-mono font-semibold">
+                ${movie.budget.toLocaleString()}
+              </span>
+            </div>
+
+            {/* Location */}
+            <div className="flex items-center justify-between">
+              <span className="text-slate-400 text-sm">Location</span>
+              <span className="text-white text-sm">{movie.location}</span>
+            </div>
+
+            {/* Duration */}
+            <div className="flex items-center justify-between">
+              <span className="text-slate-400 text-sm">Duration</span>
+              <span className="text-white text-sm">{movie.duration} mins</span>
+            </div>
+          </div>
+
+          {/* Card Footer */}
+          <div className="bg-slate-800/30 px-4 py-2 border-t border-slate-700">
+            <div className="flex items-center justify-between text-xs text-slate-500">
+              <span>ID: {movie.id}</span>
+              <span>Year: {movie.year}</span>
+            </div>
+          </div>
+        </div>
+      ))
+    ) : (
+      <div className="flex flex-col items-center justify-center py-16 px-4">
+        <div className="w-20 h-20 bg-slate-700/50 rounded-full flex items-center justify-center mb-4">
+          <svg
+            className="w-10 h-10 text-slate-400"
+            fill="none"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z"></path>
+          </svg>
+        </div>
+        <p className="text-slate-300 font-medium text-center mb-2">
+          {search ? "No movies found" : "No movies yet"}
+        </p>
+        <p className="text-slate-500 text-sm text-center mb-6">
+          {search
+            ? "Try adjusting your search"
+            : "Add your first movie to get started"}
+        </p>
+        {!search && <AddMovieModal onMovieAdded={fetchMovies} />}
+      </div>
+    )}
+  </div>
+
+  {/* Footer Stats */}
+  {filteredMovies.length > 0 && (
+    <div className="sticky bottom-0 bg-slate-800/50 backdrop-blur-sm border-t border-slate-700 px-4 py-3">
+      <div className="flex items-center justify-between text-sm">
+        <span className="text-slate-400">
+          Showing {filteredMovies.length} of {movies.length}
+        </span>
+        <span className="text-slate-400">
+          Budget: ${movies.reduce((sum, m) => sum + m.budget, 0).toLocaleString()}
+        </span>
+      </div>
+    </div>
+  )}
+</div>
+
 
  {/* Desktop View */}
 <div className="hidden md:block w-screen min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
@@ -384,9 +448,6 @@ const Home: React.FC = () => {
           <div className="flex items-center justify-between text-sm text-slate-400">
             <span>
               Showing {filteredMovies.length} of {movies.length} movies
-            </span>
-            <span>
-              Total Budget: ${movies.reduce((sum, m) => sum + m.budget, 0).toLocaleString()}
             </span>
           </div>
         </div>

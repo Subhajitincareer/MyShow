@@ -66,10 +66,10 @@ export const updateMovie = async (req, res) => {
 
         // Validate updated data
         const validatedData = movieSchema.partial().parse(req.body);
-
+        const { title, type, director, budget, location, duration, year } = validatedData;
         const updatedMovie = await prisma.movie.update({
             where: { id: parseInt(id) },
-            data: validatedData,
+            data: { title, type, director, budget, location, duration, year },
         });
 
         res.status(200).json({
